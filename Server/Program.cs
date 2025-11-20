@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,5 +24,31 @@ namespace Server
             }
             return false;
         }
+
+        public static List<string> GetDirectory(string src)
+        {
+            List<string> FoldersFiles = new List<string>();
+            if (Directory.Exists(src))
+
+
+            {
+                string[] dirs = Directory.GetDirectories(src);
+                foreach (string dir in dirs)
+                {
+                    FoldersFiles.Add(dir + "\\");
+                }
+                string[] files = Directory.GetFiles(src);
+                foreach (string file in files)
+                {
+                    FoldersFiles.Add(file);
+                }
+            }
+            return FoldersFiles;
+        }
+
+
+
+
+
     }
 }
