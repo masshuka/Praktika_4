@@ -219,5 +219,62 @@ namespace Server
             }
         }
 
+        private static void LogCommandToDatabase(int userId, string command)
+        {
+            string connectionString = "Server=localhost;port=3307;Database=ftp_data;uid=root;pwd=;";
+
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "INSERT INTO history (userId, command, sendDate) VALUES (@userId, @command, @sendDate)";
+                using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("userId", userId);
+                    cmd.Parameters.AddWithValue("@command", command);
+                    cmd.Parameters.AddWithValue("@sendDate", DateTime.Now);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        private static void LoadUsersFromDatabase()
+        {
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "SELECT id, login, password, src FROM users";
+                using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                {
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            int id = reader.GetInt32("id");
+                            string login = reader["login"].ToString();
+                            string password = reader["password"].ToString();
+                            string src = reader["src"].ToString();
+                            Users.Add(new User(id, login, password, src));
+                        }
+                    }
+                }
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            LoadUsersFromDatabase();
+            Console.Write("Введите IP адрес сервера: ");
+            string sIdAddress = Console.ReadLine();
+            Console.WriteLine("Введите порт: ");
+            string sPort = Console.ReadLine();
+            if (int.TryParse(sPort, out Port) && IPAddress.TryParse(sIdAddress, out IpAddress))
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Данные успешно введены. Запускаю сервер.");
+                StartServer();
+            }
+            Console.Read();
+        }
+
     }
 }
