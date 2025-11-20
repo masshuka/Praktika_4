@@ -43,6 +43,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\FileInfoFTP.cs" />
+    <Compile Include="Classes\ViewModelMessage.cs" />
     <Compile Include="Classes\ViewModelSend.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
