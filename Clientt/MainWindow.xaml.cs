@@ -62,6 +62,32 @@ namespace Clientt
                 MessageBox.Show("Введите корректный IP и порт.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
+        public Socket Connecting(IPAddress ipAddress, int port)
+        {
+            IPEndPoint endPoint = new IPEndPoint(ipAddress, port);
+            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            try
+            {
+                socket.Connect(endPoint);
+                return socket;
+            }
+            catch (SocketException ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+            finally
+            {
+                if (socket != null && !socket.Connected)
+                {
+                    socket.Close();
+                }
+            }
+            return null;
+        }
 
         private void Download(object sender, RoutedEventArgs e)
         {
