@@ -121,7 +121,13 @@ namespace Clientt
 
         private void Download(object sender, RoutedEventArgs e)
         {
-
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "All files (*.*)|*.*";
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string filePath = openFileDialog.FileName;
+                SendFileToServer(filePath);
+            }
         }
     }
 }
