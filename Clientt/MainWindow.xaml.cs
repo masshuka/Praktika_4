@@ -88,6 +88,36 @@ namespace Clientt
             }
             return null;
         }
+        private void LoadDirectories()
+        {
+            try
+            {
+                var response = SendCommand("cd");
+                if (response?.Command == "cd")
+                {
+                    var directories = JsonConvert.DeserializeObject<string[]>(response.Data);
+                    lstDirectories.Items.Clear();
+
+                    if (directoryStack.Count > 0)
+                    {
+                        lstDirectories.Items.Add("Назад");
+                    }
+
+                    foreach (var dir in directories)
+                    {
+                        lstDirectories.Items.Add(dir);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Не удалось загрузить список директорий.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
 
         private void Download(object sender, RoutedEventArgs e)
         {
