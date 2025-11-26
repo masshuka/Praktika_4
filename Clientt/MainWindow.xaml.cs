@@ -187,6 +187,85 @@ namespace Clientt
                 MessageBox.Show($"Ошибка загрузки: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        private void DownloadFile(string fileName)
+        {
+            try
+            {
+                string localSavePath = GetUniqueFilePath(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Path.GetFileName(fileName));
+                Console.WriteLine($"Trying to download file from server: {fileName}");
+                var socket = Connecting(ipAddress, port);
+                if (socket == null)
+                {
+                    MessageBox.Show("Не удалось подключиться к серверу.");
+                    return;
+                }
+                string command = $"get {fileName}";
+                ViewModelSend viewModelSend = new ViewModelSend(command, userId);
+                byte[] messageBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(viewModelSend));
+                socket.Send(messageBytes);
+                byte[] buffer = new byte[10485760];
+                int bytesReceived = socket.Receive(buffer);
+                string serverResponse = Encoding.UTF8.GetString(buffer, 0, bytesReceived);
+                ViewModelMessage responseMessage = JsonConvert.DeserializeObject<ViewModelMessage>(serverResponse);
+                socket.Close();
+                if (responseMessage.Command == "file")
+                {
+                    byte[] fileData = JsonConvert.DeserializeObject<byte[]>(responseMessage.Data);
+                    File.WriteAllBytes(localSavePath, fileData);
+                    MessageBox.Show($"Файл скачан и сохранён в: {localSavePath}");
+                }
+                else MessageBox.Show("Не удалось получить файл. Проверьте путь на сервере.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+        private string GetUniqueFilePath(string directory, string fileName)
+        {
+            string uniqueFilePath = Path.Combine(directory, fileName);
+            return uniqueFilePath;
+        }
+        public void SendFileToServer(string filePath)
+        {
+            try
+            {
+                var socket = Connecting(ipAddress, port);
+                if (socket == null)
+                {
+                    MessageBox.Show("Не удалось подключиться к серверу.");
+                    return;
+                }
+                if (!File.Exists(filePath))
+                {
+                    MessageBox.Show("Указанный файл не существует.");
+                    return;
+                }
+                FileInfo fileInfo = new FileInfo(filePath);
+                FileInfoFTP fileInfoFTP = new FileInfoFTP(File.ReadAllBytes(filePath), fileInfo.Name);
+                ViewModelSend viewModelSend = new ViewModelSend(JsonConvert.SerializeObject(fileInfoFTP), userId);
+                byte[] messageByte = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(viewModelSend));
+                socket.Send(messageByte);
+                byte[] buffer = new byte[10485760];
+                int bytesReceived = socket.Receive(buffer);
+                string serverResponse = Encoding.UTF8.GetString(buffer, 0, bytesReceived);
+                ViewModelMessage responseMessage = JsonConvert.DeserializeObject<ViewModelMessage>(serverResponse);
+                socket.Close();
+                LoadDirectories();
+                if (responseMessage.Command == "message")
+                {
+                    MessageBox.Show(responseMessage.Data);
+                }
+                else
+                {
+                    MessageBox.Show("Неизвестный ответ от сервера.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
 
         private void Download(object sender, RoutedEventArgs e)
         {
