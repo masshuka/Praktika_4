@@ -62,6 +62,75 @@ namespace Clientt
                 MessageBox.Show("Введите корректный IP и порт.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
+
+        private ViewModelMessage SendCommand(string message)
+        {
+            try
+            {
+                IPEndPoint endPoint = new IPEndPoint(ipAddress, port);
+                using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+                {
+                    socket.Connect(endPoint);
+                    if (socket.Connected)
+                    {
+                        var request = new ViewModelSend(message, userId);
+                        byte[] requestBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(request));
+                        socket.Send(requestBytes);
+
+                        byte[] responseBytes = new byte[10485760];
+                        int receivedBytes = socket.Receive(responseBytes);
+                        string responseData = Encoding.UTF8.GetString(responseBytes, 0, receivedBytes);
+
+                        return JsonConvert.DeserializeObject<ViewModelMessage>(responseData);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка соединения: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            return null;
+        }
+        private void lstDirectories_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (lstDirectories.SelectedItem == null)
+                return;
+
+            string selectedItem = lstDirectories.SelectedItem.ToString();
+
+            if (selectedItem == "Назад")
+            {
+                if (directoryStack.Count > 0)
+                {
+                    directoryStack.Pop();
+                    LoadDirectories();
+                }
+            }
+            if (selectedItem.EndsWith("\\"))
+            {
+                directoryStack.Push(selectedItem);
+                var response = SendCommand($"cd {selectedItem.TrimEnd('/')}");
+
+                if (response?.Command == "cd")
+                {
+                    var items = JsonConvert.DeserializeObject<List<string>>(response.Data);
+                    lstDirectories.Items.Clear();
+                    lstDirectories.Items.Add("Назад");
+                    foreach (var item in items)
+                    {
+                        lstDirectories.Items.Add(item);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show($"Ошибка открытия директории: {response?.Data}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                DownloadFile(selectedItem);
+            }
+        }
         public Socket Connecting(IPAddress ipAddress, int port)
         {
             IPEndPoint endPoint = new IPEndPoint(ipAddress, port);
