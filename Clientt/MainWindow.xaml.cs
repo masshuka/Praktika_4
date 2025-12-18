@@ -74,6 +74,14 @@ namespace Clientt
                     if (socket.Connected)
                     {
                         var request = new ViewModelSend(message, userId);
+
+                        string jsonRequest = JsonConvert.SerializeObject(request);
+
+                        Console.WriteLine($"\n=== ОТПРАВКА СЕРВЕРУ ===");
+                        Console.WriteLine($"JSON: {jsonRequest}");
+                        Console.WriteLine($"userId: {userId}");
+                        Console.WriteLine($"=======================\n");
+
                         byte[] requestBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(request));
                         socket.Send(requestBytes);
 

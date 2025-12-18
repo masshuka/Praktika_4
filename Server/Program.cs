@@ -221,7 +221,7 @@ namespace Server
 
         private static void LogCommandToDatabase(int userId, string command)
         {
-            string connectionString = "Server=localhost;port=3307;Database=ftp_data;uid=root;pwd=;";
+            string connectionString = "Server=localhost;port=3306;Database=ftp_data;uid=root;pwd=;";
 
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
